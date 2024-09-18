@@ -1,0 +1,169 @@
+%
+% LaTeX source of my resume
+% =========================
+%
+% Heavily commented to to fit even LaTeX beginners (hopefully).
+%
+% See the `README.md` file for more info.
+%
+% This file is licensed under the CC-NC-ND Creative Commons license.
+%
+
+
+% Start a document with the here given default font size and paper size.
+\documentclass[10pt,a4paper]{article}
+
+% Set the page margins.
+\usepackage[a4paper,margin=0.75in]{geometry}
+
+% Setup the language.
+\usepackage[english]{babel}
+\hyphenation{Some-long-word}
+
+% Makes resume-specific commands available.
+\usepackage{resume}
+
+
+
+\begin{document}  % begin the content of the document
+\sloppy  % this to relax whitespacing in favour of straight margins
+
+
+% title on top of the document
+\maintitle{Alexander (Zander) Majercik}{}{Last update on \today}
+
+\nobreakvspace{0.3em}  % add some page break averse vertical spacing
+
+% \noindent prevents paragraph's first lines from indenting
+% \mbox is used to obfuscate the email address
+% \sbull is a spaced bullet
+% \href well..
+% \\ breaks the line into a new paragraph
+\noindent\href{mailto:majercik@stanford.edu}{majercik\mbox{}@\mbox{}stanford.edu}
+%\textsmaller{+}1(207)751-2199\sbull
+%\href{https://research.nvidia.com/person/zander-majercik}{NVIDIA Research Profile}
+
+\spacedhrule{0.9em}{-0.4em}  % a horizontal line with some vertical spacing before and after
+
+%\roottitle{Objective}
+
+%\spacedhrule{0.5em}{-0.4em}
+
+\roottitle{Education}
+\headedsection
+{\bf Stanford University}
+{\textsc{Stanford, CA}}{%
+\headedsubsection
+{PhD}
+{September 2023 -- Present}
+{\bodytext{ Research focus: Accelerated simulation for reinforcement learning in games.\\ \emph{Adviser: Kayvon Fatahalian}}}
+}
+\headedsection
+  {\bf Williams College}
+  {\textsc{Williamstown, MA}} {%
+  \headedsubsection
+    {B.A. cum laude with Honors in Computer Science}
+    {2013-2017}
+  {\bodytext {GPA: 3.77 \\  Thesis: rvv: An Intuitive and Principled Version Control System \\ \emph{Adviser: Morgan McGuire}}}
+}
+
+\spacedhrule{0.5em}{-0.4em}
+
+\roottitle{Experience}
+\headedsection
+{\bf ROBLOX Research}
+{\textsc{San Mateo, CA}}{%
+\headedsubsection
+{Research Intern}
+{June 2024 -- September 2024}
+{ \bodytext{Developed high throughput game abstractions for learning character control.} } 
+}
+\headedsection
+{\bf NVIDIA Research}
+{\textsc{Santa Clara, CA}}{%
+\headedsubsection
+{Research Scientist}
+{July 2020 -- August 2023}
+{\bodytext{Published multiple papers on real-time global illumination, which formed the foundation of the \href{https://developer.nvidia.com/rtx/ray-tracing/rtxgi}{NVIDIA RTXGI SDK.}}}
+\headedsubsection
+{Research Engineer}
+{June 2018 -- July 2020}
+{\bodytext{Designed novel rendering algorithms with a focus on GPU ray tracing.\\Accelerated deep learning inference on multiple chips.\\Engineered software infrastructure for computer graphics and vision science experiments.\\Promoted July 2019.}}
+\headedsubsection
+{Research Intern}
+{June 2017 -- June 2018}
+{ \bodytext{Researched AI and computer graphics techniques for VR/AR. Developed research infrastructure for computer vision and GPU ray tracing.} } 
+}
+
+%\headedsection  % sets the header for a subsection and contains usually body text
+%{\bf Williams College}
+%{\textsc{Williamstown, MA}} {% 
+%\headedsubsection
+%{Thesis Research}
+%{September, 2016 -- June 2017}
+%{\bodytext{Designed and implemented a new version control system. Re-imagining version control as a \emph{data structure}, our theory-based approach built on previous work in software engineering, graph theory, and user experience/interface testing. \\\emph{Advisor: Prof. Morgan McGuire}}}
+%\headedsubsection
+%{Summer Research Fellowships}
+%{June -- August, 2014-2016}
+%{\bodytext{Derived constructions for planar representations of trees, experimented with concurrent locking mechanisms, and explored efficient block allocation in NAND memory filesystems.}}
+%  \headedsubsection
+%{Summer Research Fellowship}
+%{June -- August, 2015}
+%{\bodytext{Collected data on various locking mechanisms over a suite of concurrent programs written in Java. Constructed the �berlock, a dynamic lock that achieves better performance than standard mutex and read/write locks. \emph{Advisor: Prof. Stephen Freund}}}% \headedsubsection
+%{Summer Research Fellowship}
+%{June -- August, 2014}
+%{\bodytext{Modified and debugged the uxfs Linux file system module for compatibility with Ubuntu 12, and explored techniques for efficient block allocation in NAND memory file systems. \\\emph{Advisor: Prof. Tom Murtagh}}
+%}   
+%}
+
+
+\spacedhrule{0.5em}{-0.4em}
+
+\roottitle{Selected Publications}
+{\bodytext{
+\begin{itemize}
+\item{\textbf{Majercik, Z.}, Müller, T., Keller, A., Nowrouzezahrai, D. and McGuire, M. (2022), Dynamic Diffuse Global Illumination Resampling. Computer Graphics Forum, 41: 158-171. \url{ https://doi.org/10.1111/cgf.14427}}
+\item{\textbf{Zander Majercik}, Adam Marrs, Josef Spjut, and Morgan McGuire, Scaling Probe-Based Real-Time Dynamic Global Illumination for Production, Journal of Computer Graphics Techniques (JCGT), vol. 10, no. 2, 1-29, 2021 Available online \url{http://jcgt.org/published/0010/02/01/}}
+\item{\textbf{Zander Majercik}, Jean-Philippe Guertin, Derek Nowrouzezahrai, and Morgan McGuire, Dynamic Diffuse Global Illumination with Ray-Traced Irradiance Fields, Journal of Computer Graphics Techniques (JCGT), vol. 8, no. 2, 1-30, 2019 \url{https://jcgt.org/published/0008/02/01/}}
+\item{Jonghyun Kim, Youngmo Jeong, Michael Stengel, Kaan Ak\c{s}it, Rachel Albert, Ben Boudaoud, Trey Greer, Joohwan Kim, Ward Lopes, \textbf{Zander Majercik}, Peter Shirley, Josef Spjut, Morgan McGuire, and David Luebke. 2019. Foveated AR: Dynamically-Foveated Augmented Reality Display. ACM Trans. Graph. 38, 4, Article 99 (July 2019), 15 pages. \url{https://doi.org/10.1145/3306346.3322987}}
+\item{Joohwan Kim*, Michael Stengel*, \textbf{Alexander Majercik}, Shalini De Mello, David Dunn, Samuli Laine, Morgan McGuire, and David Luebke. 2019. NVGaze: An Anatomically-Informed Dataset for Low-Latency, Near-Eye Gaze Estimation. In CHI Conference on Human Factors in Computing Systems Proceedings (CHI 2019), May 4-9, 2019, Glasgow, Scotland UK. ACM, NewYork, NY, USA, 12 pages. \url{https://doi.org/10.1145/3290605.3300780}}
+\item{\textbf{Alexander Majercik}, Cyril Crassin, Peter Shirley, and Morgan McGuire, A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering, \emph{Journal of Computer Graphics Techniques (JCGT)}, vol. 7, no. 3, 66-81, 2018 \url{http://jcgt.org/published/0007/03/04/}}
+\end{itemize}
+ }
+ }
+ 
+ \spacedhrule{0.5em}{-0.4em}
+ 
+
+
+%    {\bodytext{Dean's List: since Fall 2013}\bodytext{Williams Computer Science Department Class of 60's Scholar, Spring 2014}}
+ %\item{{\bf Computer Science Courses}: Data Structures and Advanced Programming, Computer Organization, Algorithm Design and Analysis, Principles of Programming Languages}
+
+%\item{{\bf Philosophy Courses}: Free Will and Responsibility, Contemporary Philosophy of Mind, Philosophy of Human Nature}
+%
+%\end{itemize}
+%}}
+
+\spacedhrule{0.5em}{-0.4em}
+ 
+% \roottitle{Skills}
+%{\bodytext{
+%\begin{itemize}
+%\item{Programming Languages: C++, Python, NVIDIA Cuda, GLSL/HLSL}
+%\item{Software}
+%\begin{itemize}
+%\item{Deep Learning/Machine Learning: Pytorch, cuDNN}
+%\item{Graphics: G3D Innovation Engine (author), Unreal Engine 4, NVIDIA OptiX, OpenGL}
+%\item{Source Control: git, svn}
+%\end{itemize}
+%\end{itemize}
+% }
+% }
+ 
+%\roottitle{Other Current Activities}{Parkour \& Acrobatics, Super Smash Bros. Ultimate}
+
+%\bibliography{bibliography}
+%\bibliographystyle{plain}
+\end{document}
+
+＀

@@ -1,0 +1,4 @@
+@poster{Majercik17,
+author = "Alexander Majercik, Morgan McGuire, Peter Shirley",
+title = "An Efficient GPU Ray-Box Intersection Algorithm"
+}
