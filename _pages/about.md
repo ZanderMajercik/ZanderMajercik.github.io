@@ -18,7 +18,7 @@ selected_papers: false # includes a list of papers marked as "selected={true}"
 social: true # includes social icons at the bottom of the page
 ---
 
-I'm a 2nd-year PhD student at Stanford University, advised by [Kayvon Fatahalian](https://graphics.stanford.edu/~kayvonf/).
+I'm a 2nd-year PhD student at Stanford University, advised by [Kayvon Fatahalian](https://graphics.stanford.edu/~kayvonf/). My research is on leveraging modern AI techniques to improve 3D interactive content creation. Before Stanford, I was a Research Scientist at NVIDIA working on rendering algorithms for video games.
 
 <!-- Write your biography here. Tell the world about yourself. Link to your favorite [subreddit](http://reddit.com). You can put a picture in, too. The code is already in, just name your picture `prof_pic.jpg` and put it in the `img/` folder.
 
