@@ -9,8 +9,8 @@ profile:
   image: profile.jpg
   image_circular: false # crops the image to make it circular
   more_info: >
-    <p>Gates Computer Science, 381</p>
-    <p>353 Serra Mall</p>
+    <p>Computing and Data Science, E370</p>
+    <p>389 Jane Stanford Way</p>
     <p>Stanford, CA 94305</p>
 
 news: false # includes a list of news items
