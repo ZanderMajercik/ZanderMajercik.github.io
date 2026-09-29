@@ -14,7 +14,7 @@ footer_text: >
   Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
 keywords: jekyll, jekyll-theme, academic-website, portfolio-website # add your own keywords or leave empty
 lang: en # the language of your site (for example: en, fr, cn, ru, etc.)
-icon: publication_preview/automatedrewards.png # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
+icon: publication_preview/obstacle-feedback.png # the emoji used as the favicon (alternatively, provide image name in /assets/img/)
 
 url: https://ZanderMajercik.github.io # the base hostname & protocol for your site
 baseurl: # the subpath of your site, e.g. /blog/. Leave blank for root
@@ -312,7 +312,7 @@ display_categories: #["external-services"] # these categories will be displayed 
 
 scholar:
   last_name: [Majercik]
-  first_name: [Zander]
+  first_name: [Zander, Alexander]
 
   style: apa
   locale: en
