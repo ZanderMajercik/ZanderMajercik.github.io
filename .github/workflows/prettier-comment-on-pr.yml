@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [prettier-failed-on-pr]
 
+# no Node 24 release of this action yet; run it on Node 24 anyway
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   comment:
     # available images: https://github.com/actions/runner-images#available-images
