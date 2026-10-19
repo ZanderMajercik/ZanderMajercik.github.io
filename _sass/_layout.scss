@@ -2,6 +2,11 @@
  * Content
  ******************************************************************************/
 
+html {
+  // Keep in-page link targets (equations, footnotes, citations) clear of the fixed nav-bar.
+  scroll-padding-top: 76px;
+}
+
 body {
   padding-bottom: 70px;
   color: var(--global-text-color);
