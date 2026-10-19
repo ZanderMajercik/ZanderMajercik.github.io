@@ -1,0 +1,188 @@
+---
+layout: post
+title: Computing Irradiance from a Cosine-Weighted Average of Radiance
+date: 2026-10-18
+description: An error in a paper I published 6 years ago was confusing people on Reddit, so this post clarifies our method for computing irradiance using light probes.
+related_posts: false
+---
+
+Before I started my PhD in 2023, I worked on Real-time Rendering for Games at NVIDIA Research. In a 2019 [publication](https://jcgt.org/published/0008/02/01/), our team showed to how compute diffuse global illumination using ray-traced irradiance probes. Seven years later, during a collaboration with NVIDIA in the summer of 2026, a [thread](https://www.reddit.com/r/GraphicsProgramming/comments/1v18dxe/ddgi_sample_code_confusion/) appeared on Reddit which described confusion over an error in our published source code. The error occurs at the very end of the fragment shader (`sampleIrradiance.pix`) in which cosine-weighted average of incident radiance is used to compute lambertian indirect radiance or *irradiance*.
+
+Specifically, the final line as published in 2019 sets:
+<br>
+`E_lambertianIndirect = 0.5 * pi * netIrradiance;`<br>
+
+instead of the corrected version, which removes the $$0.5$$
+<br>
+`E_lambertianIndirect = pi * netIrradiance;`<br>
+
+This document explains the computation of irradiance in terms of the quantity stored in the probe data structure to illustrate why the modified line is correct.
+
+## 1 Estimating diffuse reflected radiance
+
+Start with the rendering equation for the outgoing light ($$L_o$$) from a point on a surface ($$x$$) in a given direction ($$w_o$$)
+
+\begin{equation}
+    L_o(w_o, x) = L_e(w_o, x) + \int_{\Omega}L_i(w_o)BRDF(w_o, w_i)cos(w_i)dw_i
+\end{equation}
+
+where $$L_e$$ is the emitted radiance, and the remainder of the equation shows the integral of incident radiance over the hemisphere as in contributes reflected radiance to the outgoing direction ($$w_o$$). We care about the *diffuse* component of reflected radiance, which means we can omit $$L_e$$ and use a constant BRDF $$\frac{\rho}{\pi}$$. The $$\rho$$ is the material reflectivity (an RGB vector), and the $$\pi$$ is from distributing that reflectivity over the cosine-hemisphere. Pulling out the constant BRDF, we get:
+
+\begin{equation}
+    L_o(w_o, x) = \frac{\rho}{\pi} \int_{\Omega}L_i(w_i)cos(w_i)dw_i
+\end{equation}
+
+We will estimate this integral by Monte Carlo (MC) sampling assuming rays distributed uniformly over the hemisphere:
+
+\begin{equation}
+    L_o(w_o, x) = \frac{\rho}{\pi} \frac{2\pi}{N}\sum_{j = 1}^{n}L_i(w_i)(n \cdot w_i)
+\end{equation}
+
+\begin{equation}
+\label{diffuse-reflected-radiance-integral}
+    L_o(w_o, x) = 2\rho \mathbb{E} \left[L_i(w_i)(n \cdot w_i)\right]
+\end{equation}
+
+the above follows the derivation on slide 102 of these lecture [slides](https://imaging.cs.cmu.edu/15-468/lectures/lecture_08.pdf) {% cite Gkioulekas --file ddgi-0.5-factor.bib %}.
+
+## 2 Estimating diffuse reflected radiance with irradiance probes
+
+Let's break the computation into two steps:
+
+- Compute the irradiance integral at the point.
+- Multiply by the constant BRDF to compute exitant radiance at the point.
+
+From this [section](https://pbr-book.org/3ed-2018/Color_and_Radiometry/Working_with_Radiometric_Integrals) of PBRT {% cite pharr2023pbrt --file ddgi-0.5-factor.bib %}, we have that the irradiance is:
+
+\begin{equation}
+    E(x, n) = \int_{\Omega}L_i(w)(n \cdot w)dw
+\end{equation}
+
+which we can estimate by MC integration as:
+
+\begin{equation}
+    E(x, n) \approx \frac{2\pi}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)
+\end{equation}
+
+then, multiply by the constant BRDF
+
+\begin{equation}
+\label{diffuse-reflected-radiance}
+    \frac{\rho}{\pi}E(x, n) \approx \frac{2\rho}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j) = 2\rho \mathbb{E} \left[L_i(w_i)(n \cdot w_i)\right]
+\end{equation}
+
+which matches Eq.&nbsp;\ref{diffuse-reflected-radiance-integral} above.
+
+### Irradiance Estimates in Probes
+
+The DDGI probes are used to estimate the irradiance integral. To do this, the probes store the _cosine-weighted average of incident radiance_. They store the cosine-weighted average because computing irradiance with this quantity leads to an estimate with lower variance. The following sections show why this is the case by discussing alternative quantities the probes could store.
+
+#### Alternative 1: The MC Estimate of the Integral of Irradiance
+
+We could have the probes directly store a MC estimate of the integral of cosine-radiance over the hemisphere. That looks like this:
+
+\begin{equation}
+\label{probe-irradiance-mc}
+    Probe(x, n) = \frac{2\pi}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)
+\end{equation}
+
+We can then compute diffuse reflected radiance at a point and normal $$(x, n)$$ by multiplying the BRDF directly by the probe result: $$\frac{\rho}{\pi}Probe(x, n)$$.[^single-probe]
+
+[^single-probe]: In this example and the ones that follow, I assume the result is read from a single probe, but the reasoning is the same when extended to multiple probes with trilinear and backface weights.
+
+#### Alternative 2: The MC Estimate of the Average Value of Irradiance
+
+Note that we can save the multiplication by $$2\pi$$ for when we read from the probes. This might be desirable if we are using a low bit-depth texture format to store the probe results because it would make the stored radiance values smaller. The probes would then store:
+
+\begin{equation}
+    Probe(x, n) = \frac{1}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)
+\end{equation}
+
+the average value of indicent radiance over the hemisphere. The full irradiance integral is recovered with $$2\pi Probe(x, n)$$, and the BRDF multiplication for diffuse reflected radiance gives $$\frac{\rho}{\pi} * 2\pi * Probe(x, n)$$ (note the similarity, after canceling $$\pi$$, to Eq.&nbsp;\ref{diffuse-reflected-radiance} above).
+
+### Reducing Variance in Probe Irradiance Estimates
+
+In the above examples, the probes are storing an average of incident radiance. This average has the same problem here that it does in standard path tracing: high variance. Some of this variance comes from the cosine term in the irradiance integral. In path tracing, the first step to mitigate this variance is cosine importance sampling. Unfortunately, because a single set of probe update rays contributes to the irradiance estimate for multiple hemisphere directions, we cannot perform cosine importance sampling with respect to one direction without degrading the result in another. However, we would like to mitigate the cosine variance because we want to trace as few update rays per probe as possible to preserve high performance.
+
+#### Cosine Variance
+
+The following example demonstrates that the variance from the cosine term can be severe. Consider a probe in a constant illumination environment such that $$L_i(w) = 1$$ for all directions $$w$$. In this environment, we can compute diffuse reflected radiance radiance (for the constant BRDF $$\frac{\rho}{\pi}$$) like so:
+
+\begin{equation}
+    \frac{\rho}{\pi}E(x, n) = \frac{\rho}{\pi}\int_{\Omega}L_i(w)(n \cdot w)dw = \frac{\rho}{\pi}\int_{\Omega}(n \cdot w) dw = \frac{\rho}{\pi}\pi = \rho
+\end{equation}
+
+If we instead do not compute the integral analytically but use MC integration, we have the following substitution above:
+
+\begin{equation}
+    \label{mc-estimate}
+    \frac{\rho}{\pi}\int_{\Omega}(n \cdot w) dw \approx \frac{\rho}{\pi}\frac{2\pi}{N}\sum_{i = 1}^{N}(n \cdot w_i)
+\end{equation}
+
+For an extreme example, take $$N = 2$$. I computed this 2-sample estimate over 5 trials with directions sampled uniformly at random over the hemisphere. Over these 5 trials, $$\frac{1}{N}\sum_{i = 1}^{N}(n \cdot w_i)$$ ranged from roughly $$\frac{3}{4}$$ to $$\frac{1}{4}$$ . If we substitute these values into Eq.&nbsp;\ref{mc-estimate}, we get diffuse reflected radiance values of $$\frac{3\rho}{2}$$ and $$\frac{\rho}{2}$$ respectively. That's a 3x variation in diffuse reflected radiance!
+
+#### Reducing the variance via cosine-weighted average of radiance
+
+The above estimate computes the average of cosine-weighted radiance over the hemisphere: $$\frac{1}{N}\sum_{i = 1}^{N}L(w_i)(n \cdot w_i)$$. The example above shows that this estimate can have high variance at low ray counts due to the cosine term. A related quantity with zero cosine variance is the _cosine-weighted average of radiance_ over the hemisphere:
+
+\begin{equation}
+\label{cosine-weighted-average}
+    \frac{\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\sum_{j = 1}^{N}(n \cdot w_j)}
+\end{equation}
+
+Going back the above example, we see that this quantity has zero cosine variance because if $$L_i = 1$$, Eq.&nbsp;\ref{cosine-weighted-average} is equal to 1 no matter the variance of the cosine samples. To relate "cosine-weighted average of radiance" to "average of cosine-weighted radiance", we can write it as:
+
+\begin{equation}
+    \frac{\frac{1}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\frac{1}{N}\sum_{j = 1}^{N}(n \cdot w_j)}
+\end{equation}
+
+if we used this as we used the average of cosine-weighted radiance to compute diffuse reflected radiance, we'd have
+
+\begin{equation}
+    \frac{\frac{\rho}{\pi}2\pi\frac{1}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\frac{1}{N}\sum_{j = 1}^{N}(n \cdot w_j)}
+\end{equation}
+
+Looking at Eq.&nbsp;\ref{mc-estimate}, this is off by a factor of $$\frac{1}{N}\sum_{i = 1}^{N}(n \cdot w_i)$$. Another way to interpret this factor, however, is as the average value of cosine over the hemisphere. As $$N \rightarrow \infty$$, this value approaches $$\frac{1}{2}$$. So, we can multiply by this term to give
+
+\begin{equation}
+    \frac{1}{2}\frac{\frac{\rho}{\pi}2\pi\frac{1}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\frac{1}{N}\sum_{j = 1}^{N}(n \cdot w_j)} \approx \frac{\rho}{\pi}2\pi\frac{1}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)
+\end{equation}
+
+which is approximate diffuse reflected radiance.
+
+#### What is stored in the probes
+
+The DDGI irradiance probes store the cosine-weighted average of radiance:
+
+\begin{equation}
+    Probe(x, n) = \frac{\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\sum_{j = 1}^{N}(n \cdot w_j)}
+\end{equation}
+
+Note that this is exactly Eq.&nbsp;\ref{cosine-weighted-average} above. From this, we are only interested in estimating the irradiance integral (diffuse reflected radiance radiance will be computed when a material sample is read). This means we can drop the $$\frac{\rho}{\pi}$$ term from the BRDF. So, we want:
+
+\begin{equation}
+    \frac{2\pi}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)
+\end{equation}
+
+substituting terms, we have
+
+\begin{equation}
+    \frac{2\pi}{N}\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j) \approx 2\pi * \frac{1}{2} * \frac{\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\sum_{j = 1}^{N}(n \cdot w_j)} =
+\end{equation}
+
+\begin{equation}
+\label{probe-irradiance}
+    2\pi * \frac{1}{2} * Probe(x, n)
+\end{equation}
+
+Looking at Equation&nbsp;\ref{probe-irradiance} and canceling terms, we can recover the irradiance from this value by multiplying $$Probe(x, n)$$ by $$\pi$$. The full computation looks like:
+
+\begin{equation}
+    E(x, n) = 2\pi * \frac{1}{2} * \frac{\sum_{j = 1}^{N}L_i(w_j)(n \cdot w_j)}{\sum_{j = 1}^{N}(n \cdot w_j)}
+\end{equation}
+
+where the rightmost term is what's stored in the probes, the middle term corrects for the cosine-normalization, and the leftmost $$2\pi$$ (surface area of the hemisphere) turns the average value into the desired integral. Because the $$2\pi$$ and $$\frac{1}{2}$$ terms cancel to yield $$\pi$$, multiplication of the probe value by just $$\pi$$ when reading is correct.
+
+## References
+
+{% bibliography --file ddgi-0.5-factor.bib --cited_in_order --template reference --group_by none %}
